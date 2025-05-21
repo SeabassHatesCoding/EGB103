@@ -1,0 +1,371 @@
+TASK 1:
+def calculate_distance_with_ignored_forces(force, time=1.0):
+    
+    mass = 1750 #The mass of the car was given as 1750kg.
+    acceleration = force / mass #F=ma (Force = mass x acceleration) formula
+    distance = 0.5 * acceleration * (time ** 2) #Calclating distance using the kinematic equation.
+
+    return distance #Returns distance travelled in metres
+---------------------------------------------------------------
+TASK2:
+def calculated_distance_with_forces(engine_force, #Engine froce in Newtons (N)
+                                     time = 1.0, #Defaulting the time duration to 1 second
+                                     mass = 1750, #Mass of the car in kg
+                                     rolling_resistance_coefficient = 0.02, #Rolling friction coefficient
+                                     air_density = 1.225,
+                                     drag_coefficient = 0.3,
+                                     frontal_area_of_the_car = 2.3):
+    
+    gravity = 9.81 #Gravitational acceleration
+    time_step_seconds= 0.01 #Time step for numerical integration
+    velocity = 0.0
+    distance = 0.0
+    
+    for _ in range (int(time / dt)):
+        #Calculating the opposing forces:
+        f_friction = rolling_resistance_coefficient * mass * g
+        
+        air_drag = 0.5 * air_density * drag_coefficient * frontal_area_of_the_car * (velocity ** 2)
+
+        #Net force determines acceleration
+        net_force = engine_force - f_friction - air_drag
+
+        acceleration = net_force / mass 
+
+        velocity += acceleration * time_step_seconds
+        distance += velocity * time_step_seconds
+        
+    return distance
+--------------------------------------------------
+TASK 3:
+# Define a function to simulate car dynamics with various parameters
+def simulate_car_dynamics(engine_force,
+                          time=1.0,               # Total simulation time in seconds (default 1.0)
+                          mass=1750,               # Vehicle mass in kg (typical sedan weight)
+                          rolling_resistance_coefficient=0.02,  # Coefficient for rolling resistance
+                          air_density=1.225,       # Air density in kg/m³ (at sea level)
+                          drag_coefficient=0.3,    # Aerodynamic drag coefficient
+                          frontal_area_of_the_car=2.3):  # Frontal area in m²
+    
+    # Physical constants
+    gravity = 9.81  # Acceleration due to gravity in m/s²
+    time_step_seconds = 0.01  # Simulation time step in seconds (small for accuracy)
+    steps = int(time / time_step_seconds)  # Calculate total number of simulation steps
+    
+    # Initialize simulation variables
+    velocity = 0.0  # Starting velocity (at rest)
+    distance = 0.0  # Starting distance (zero)
+    
+    # Lists to store results for plotting
+    time_list = []
+    velocity_list = []
+    distance_list = []
+    
+    # Main simulation loop
+    for step in range(steps):
+        current_time_in_seconds = step * time_step_seconds  # Calculate current time
+        
+        # Calculate friction force (rolling resistance)
+        f_friction = rolling_resistance_coefficient * mass * gravity
+        # Calculate air drag force (proportional to velocity squared)
+        air_drag = 0.5 * air_density * drag_coefficient * frontal_area_of_the_car * (velocity ** 2)
+        
+        # Calculate net force acting on the car
+        net_force = engine_force - f_friction - air_drag
+        # Calculate acceleration using Newton's second law (F=ma)
+        acceleration = net_force / mass
+        
+        # Update velocity using Euler integration
+        velocity += acceleration * time_step_seconds
+        # Update distance using Euler integration
+        distance += velocity * time_step_seconds
+        
+        # Store current values for plotting
+        time_list.append(current_time_in_seconds)
+        velocity_list.append(velocity)
+        distance_list.append(distance)
+    
+    # Return the collected data
+    return time_list, velocity_list, distance_list
+
+# Simulate car dynamics with 4000 N engine force for 10 seconds
+time_vals, vel_vals, dist_vals = simulate_car_dynamics(engine_force=4000, time=100)
+
+# Create a figure for plotting with specified size (12x6 inches)
+plt.figure(figsize=(12, 6))
+
+# First subplot (left side) for velocity
+plt.subplot(1, 2, 1)  # 1 row, 2 columns, first plot
+plt.plot(time_vals, vel_vals, label='Velocity (m/s)', color='blue')
+plt.title('Car Velocity Over Time')  # Set title
+plt.xlabel('Time (s)')  # X-axis label
+plt.ylabel('Velocity (m/s)')  # Y-axis label
+plt.grid(True)  # Enable grid for better readability
+
+# Second subplot (right side) for distance
+plt.subplot(1, 2, 2)  # 1 row, 2 columns, second plot
+plt.plot(time_vals, dist_vals, label='Distance (m)', color='green')
+plt.title('Car Distance Over Time')
+plt.xlabel('Time (s)')
+plt.ylabel('Distance (m)')
+plt.grid(True)
+
+# Adjust layout to prevent overlapping elements
+plt.tight_layout()
+# Display the plot
+plt.show()
+-----------------------------------------------
+TASK 4:
+# Read the cleaned car data from CSV file into a pandas DataFrame
+car_data = pd.read_csv('cleaned_car_data.csv')
+
+# Find the car with maximum horsepower using idxmax() to get the index, then loc to get the row
+most_powerful_car = car_data.loc[car_data['Horsepower'].idxmax()]  # Highest HP
+print("Most Powerful Car Info:")
+for column, value in most_powerful_car.items():
+    print(f"{column}: {value}")
+
+
+#Physics constants and car properties
+car_mass_kg = 1750  # Mass of the car in kilograms
+target_speed_mps = 26.82  # Target speed (60 mph converted to m/s)
+acceleration_time_sec = most_powerful_car['0-60 MPH Time (seconds)']  # Time to reach 60 mph from the dataset
+
+# Using basic kinematic equation for constant acceleration
+acceleration_mps2 = target_speed_mps / acceleration_time_sec
+
+#Compute rolling resistance and aerodynamic drag at 60 mph
+gravity_m_s2 = 9.81  # Acceleration due to gravity (m/s^2)
+rolling_resistance_coeff = 0.02  # Coefficient of rolling resistance (dimensionless)
+air_density_kg_m3 = 1.225  # Air density at sea level (kg/m^3)
+drag_coefficient = 0.3  # Drag coefficient (dimensionless)
+frontal_area_m2 = 2.3  # Frontal area of the car (m^2)
+
+# Calculate rolling resistance force (F_friction = μ * m * g)
+rolling_resistance_force = rolling_resistance_coeff * car_mass_kg * gravity_m_s2
+# Calculate aerodynamic drag force (F_drag = 0.5 * ρ * Cd * A * v^2)
+drag_force = 0.5 * air_density_kg_m3 * drag_coefficient * frontal_area_m2 * (target_speed_mps ** 2)
+
+#Total engine force using full Newtonian model
+#F_engine must overcome friction, drag, and provide acceleration (F = F_friction + F_drag + m*a)
+total_engine_force = rolling_resistance_force + drag_force + (car_mass_kg * acceleration_mps2)
+print(f"\nCalculated Engine Force: {total_engine_force:.2f} N")
+
+#Simulate car motion using numerical integration
+def simulate_car_dynamics(engine_force_newtons,
+                          simulation_duration_sec=10.0,
+                          vehicle_mass_kg=1750,
+                          rolling_resistance=0.02,
+                          air_density=1.225,
+                          drag_coeff=0.3,
+                          frontal_area=2.3):
+    """
+    Simulates car motion using numerical integration (Euler method)
+    
+    Parameters:
+    engine_force_newtons (float): Constant engine force in Newtons
+    simulation_duration_sec (float): Total simulation time in seconds
+    vehicle_mass_kg (float): Mass of the car in kg
+    rolling_resistance (float): Rolling resistance coefficient
+    air_density (float): Air density in kg/m^3
+    drag_coeff (float): Drag coefficient
+    frontal_area (float): Frontal area in m^2
+    
+    Returns:
+    tuple: (time_points, velocity_points, distance_points) containing simulation results
+    """
+    gravity = 9.81  # Gravity
+    time_step_sec = 0.01  # Time step for numerical integration (smaller = more accurate)
+    current_velocity_mps = 0.0  # Initial velocity (m/s)
+    total_distance_m = 0.0  # Initial distance (m)
+    
+    # Lists to store simulation results
+    time_points = []
+    velocity_points = []
+    distance_points = []
+    
+    # Simulation loop
+    for step in range(int(simulation_duration_sec / time_step_sec)):
+        current_time_sec = step * time_step_sec
+        # Calculate forces at current velocity
+        friction_force = rolling_resistance * vehicle_mass_kg * gravity
+        air_resistance_force = 0.5 * air_density * drag_coeff * frontal_area * (current_velocity_mps ** 2)
+        
+        # Net force (engine force minus resistive forces)
+        net_force = engine_force_newtons - friction_force - air_resistance_force
+        # Acceleration from Newton's second law
+        current_acceleration = net_force / vehicle_mass_kg
+        
+        # Update velocity and distance using Euler integration
+        current_velocity_mps += current_acceleration * time_step_sec
+        total_distance_m += current_velocity_mps * time_step_sec
+        
+        # Store results
+        time_points.append(current_time_sec)
+        velocity_points.append(current_velocity_mps)
+        distance_points.append(total_distance_m)
+        
+    return time_points, velocity_points, distance_points
+--------------------------------------------------------------
+TASK 5:
+###### Load car data
+car_data = pd.read_csv('cleaned_car_data.csv')
+
+#Identify the most powerful car based on horsepower
+most_powerful_car = car_data.loc[car_data['Horsepower'].idxmax()]
+print("Most Powerful Car Info:")
+for column, value in most_powerful_car.items():
+    print(f"{column}: {value}")
+
+#Physics constants and car specs
+car_mass_kg = 1750  # Mass of the car in kg
+target_speed_mps = 26.82  # 60 mph in m/s
+acceleration_time_sec = most_powerful_car['0-60 MPH Time (seconds)']
+acceleration_mps2 = target_speed_mps / acceleration_time_sec  # From a = v/t
+
+#Constants for resistance
+gravity_m_s2 = 9.81
+rolling_resistance_coeff = 0.02
+air_density_kg_m3 = 1.225
+drag_coefficient = 0.3
+frontal_area_m2 = 2.3
+
+#Compute friction and air drag at 60 mph
+rolling_resistance_force = rolling_resistance_coeff * car_mass_kg * gravity_m_s2
+drag_force = 0.5 * air_density_kg_m3 * drag_coefficient * frontal_area_m2 * (target_speed_mps ** 2)
+
+#Calculate total engine force using Newton’s 2nd Law
+total_engine_force = rolling_resistance_force + drag_force + (car_mass_kg * acceleration_mps2)
+print(f"\nCalculated Engine Force: {total_engine_force:.2f} N")
+
+#Simulate until terminal velocity
+def simulate_until_terminal_velocity(engine_force_newtons,
+                                     vehicle_mass_kg=1750,
+                                     rolling_resistance=0.02,
+                                     air_density=1.225,
+                                     drag_coeff=0.3,
+                                     frontal_area=2.3,
+                                     threshold_acceleration=0.01,
+                                     max_simulation_time=60):
+    gravity = 9.81
+    time_step_sec = 0.01
+    current_velocity_mps = 0.0
+    total_distance_m = 0.0
+    
+    time_points = []
+    velocity_points = []
+    distance_points = []
+    
+    step = 0
+    while True:
+        current_time_sec = step * time_step_sec
+        if current_time_sec > max_simulation_time:
+            break
+        
+        #Calculate resistive forces
+        friction_force = rolling_resistance * vehicle_mass_kg * gravity
+        air_resistance_force = 0.5 * air_density * drag_coeff * frontal_area * (current_velocity_mps ** 2)
+        net_force = engine_force_newtons - friction_force - air_resistance_force
+        current_acceleration = net_force / vehicle_mass_kg
+
+        #Euler integration
+        current_velocity_mps += current_acceleration * time_step_sec
+        total_distance_m += current_velocity_mps * time_step_sec
+
+        #Store values
+        time_points.append(current_time_sec)
+        velocity_points.append(current_velocity_mps)
+        distance_points.append(total_distance_m)
+
+        step += 1
+
+    return time_points, velocity_points, distance_points
+
+#Run the simulation
+simulation_time, velocity_data, distance_data = simulate_until_terminal_velocity(total_engine_force)
+
+#Report max speed
+max_speed_mps = max(velocity_data)
+print(f"\nMaximum Speed Achieved: {max_speed_mps:.2f} m/s ({max_speed_mps * 3.6:.2f} km/h)")
+
+#Plot velocity over time
+plt.figure(figsize=(10, 6))
+plt.plot(simulation_time, velocity_data, label='Velocity (m/s)', color='blue')
+plt.axhline(target_speed_mps, color='gray', linestyle='--', label='60 mph (26.82 m/s)')
+plt.title('Velocity Over Time Until Max Speed')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Speed (m/s)')
+plt.grid(True)
+plt.legend()
+plt.show()
+--------------------------------------------
+TASK 6: 
+def stopping_distance(current_speed_mps,
+                                braking_force_N,
+                                mass_kg=1750, 
+                              friction_coefficient=0.7,
+                                reaction_time=1.0):
+    
+    #Calculate reaction distance (distance traveled during driver reaction time)
+    reaction_distance = current_speed_mps * reaction_time
+    
+    #Calculate maximum possible deceleration
+    max_deceleration = friction_coefficient * 9.81  # a = μ * g
+    
+    #Calculate actual deceleration from brakes (a = F/m)
+    brake_deceleration = braking_force_N / mass_kg
+    
+    #Use the smaller deceleration
+    effective_deceleration = min(brake_deceleration, max_deceleration)
+    
+    #Calculate braking distance (v^2 = u^2 + 2as REARRANGE TO s = u^2 /2a)
+    braking_distance = (current_speed_mps ** 2) / (2 * effective_deceleration)
+    
+    #Total stopping distance
+    total_distance = reaction_distance + braking_distance
+    
+    return {
+        'reaction_distance_m': reaction_distance,
+        'braking_distance_m': braking_distance,
+        'total_stopping_distance_m': total_distance,
+        'deceleration_mps2': effective_deceleration,
+        'stopping_time_s': reaction_time + (current_speed_mps / effective_deceleration)
+    }
+------------------------------------------------------
+TASK 7:
+# First simulate acceleration to max speed
+time_points, velocity_points, distance_points = simulate_car_dynamics(
+    engine_force_newtons=total_engine_force,
+    simulation_duration_sec=30
+)
+max_speed = max(velocity_points)  # Peak velocity in m/s
+accel_distance = distance_points[-1]  # Total acceleration distance
+
+# Modified braking distance calculation (without asphalt friction limit)
+def calculate_braking(speed, brake_force=1000):
+    """Calculate stopping distance using ONLY the specified brake force"""
+    deceleration = brake_force / car_mass_kg  # a = F/m (Newton's 2nd law)
+    return (speed ** 2) / (2 * deceleration)  # kinematic equation
+
+braking_distance = calculate_braking(max_speed)  # Calculate with 1kN force
+
+# Calculate total track length
+total_length = accel_distance + braking_distance
+
+# Display results
+print(f"\nDRAG RACE TRACK REQUIREMENTS (1kN braking force):")
+print(f"Acceleration phase: {accel_distance:.1f}m to {max_speed*3.6:.1f} km/h")
+print(f"Braking distance (no friction limit): {braking_distance:.1f}m")
+print(f"MINIMUM TRACK LENGTH REQUIRED: {total_length:.1f}m")
+
+# Visualization
+plt.figure(figsize=(10,5))
+plt.plot(time_points, velocity_points, 'b-', linewidth=2)
+plt.axhline(max_speed, color='r', linestyle='--', 
+           label=f'Max speed: {max_speed*3.6:.1f} km/h')
+plt.xlabel('Time (s)')
+plt.ylabel('Speed (m/s)')
+plt.title('Drag Race Speed Profile (No Friction Limit)')
+plt.grid(True)
+plt.legend()
+plt.show()
